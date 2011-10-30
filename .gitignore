@@ -1,1 +1,13 @@
-./_info/*
+#directories
+_info/
+game_logs/*
+
+# varios files
+*.swp
+*.o
+*.log
+
+# executable bot
+my_bot/MyBot
+
+
