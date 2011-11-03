@@ -3,6 +3,7 @@
 #include "game.h"
 #include "logger.h"
 #include "map.h"
+#include "ai.h"
 /*----------------------------------------------------------------------------*/
 /* DEFINES                                                                    */
 /*----------------------------------------------------------------------------*/
@@ -29,6 +30,29 @@ enum engine_state {
 void SendEndTurn (void)
 {
 	puts ("go\n");
+	fflush (stdout);
+}
+/*----------------------------------------------------------------------------*/
+void MoveFunc (
+        unsigned int pos_x, unsigned int pos_y,
+        enum ants_move_directions direction
+) {
+char way_letter;
+        switch (direction) {
+        case ANT_NORTH:
+                way_letter = 'N';
+                break;
+        case ANT_SOUTH:
+                way_letter = 'S';
+                break;
+        case ANT_EAST:
+                way_letter = 'E';
+                break;
+        case ANT_WEST:
+                way_letter = 'W';
+                break;
+        }
+        printf ("o %d %d %c\n", pos_x, pos_y, way_letter);
 	fflush (stdout);
 }
 /*----------------------------------------------------------------------------*/
@@ -74,8 +98,9 @@ enum engine_state state_next = state;
 		}
 		if (state == ESTATE_RUN_MAP && 
 		    0 == strcmp (input_line, WORD_GO)) {
-			/*TODO: here is my go logic*/
 			Logger_INFO ("--- my turn");
+			/*TODO: here is my go logic*/
+                        AI_DoNextTurn ();
 			state_next = ESTATE_RUN_TURN;
 			SendEndTurn();
 			continue;
