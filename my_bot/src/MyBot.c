@@ -29,12 +29,13 @@ enum engine_state {
 /*----------------------------------------------------------------------------*/
 void SendEndTurn (void)
 {
+	Logger_INFO ("Send end turn");
 	puts ("go\n");
 	fflush (stdout);
 }
 /*----------------------------------------------------------------------------*/
 void MoveFunc (
-        unsigned int pos_x, unsigned int pos_y,
+        unsigned int row, unsigned int col,
         enum ants_move_directions direction
 ) {
 char way_letter;
@@ -51,8 +52,11 @@ char way_letter;
         case ANT_WEST:
                 way_letter = 'W';
                 break;
+	default:
+		Logger_ERROR ("Wrong direction");
+		return;
         }
-        printf ("o %d %d %c\n", pos_x, pos_y, way_letter);
+        printf ("o %d %d %c\n", row, col, way_letter);
 	fflush (stdout);
 }
 /*----------------------------------------------------------------------------*/
@@ -63,12 +67,14 @@ int main (int argc, char *argv[])
 char             input_line[IO_BUFFER_LENGTH];
 struct game_info game_info;
 struct map       map;
+struct ants_ai   ai;
 enum engine_state state = ESTATE_RESET;
 enum engine_state state_next = state;
 
 	/* initialization */
 	Logger_Init (LOGGER_FILENAME);
 	Logger_INFO ("me: Hi");
+	AI_Initialize (&ai, &MoveFunc);
 
 	/* main cycle */
 	for (;;) {
@@ -87,6 +93,7 @@ enum engine_state state_next = state;
 			/* we are loaded all initializing information */
 			/* lets intialize internal structures         */
 			state_next = ESTATE_RUN_TURN;
+			Logger_INFO ("Init finished");
 			Map_Init (&map, &game_info);
 			SendEndTurn ();
 			continue;
@@ -99,8 +106,7 @@ enum engine_state state_next = state;
 		if (state == ESTATE_RUN_MAP && 
 		    0 == strcmp (input_line, WORD_GO)) {
 			Logger_INFO ("--- my turn");
-			/*TODO: here is my go logic*/
-                        AI_DoNextTurn ();
+                        AI_DoNextTurn (&ai, &map);
 			state_next = ESTATE_RUN_TURN;
 			SendEndTurn();
 			continue;
@@ -122,7 +128,6 @@ enum engine_state state_next = state;
 		case ESTATE_RUN_MAP:
 			Logger_INFO ("ESTATE_RUN_MAP");
 			Map_ParseMapStr (&map, input_line);
-			SendEndTurn ();
 			break;
 		case ESTATE_FINALIZE1:
 			Logger_INFO ("ESTATE_FINALIZE1");
@@ -137,36 +142,13 @@ enum engine_state state_next = state;
 			Logger_ERROR ("state is wrong");
 			goto out;
 		}
+		Logger_INFO ("parsed");
 	}
 out:
 	/* destroy */
-	Logger_Destroy ();
 	Map_Destroy (&map);
+	AI_Destroy (&ai);
+	Logger_Destroy ();
 	return 0;
 }
-
-//	/* initialization */
-//	Logger_Init (LOGGER_FILENAME);
-//	Logger_INFO ("Hi");
-//	/* loading game info */
-//	Game_GetInitInfo (&game_info);
-//	Game_InitRandom (&game_info);
-//	Map_Init (&map, &game_info);
-//	IO_SendEndTurn ();
-//	/* main cycle */
-//	Logger_INFO ("start main cycle");
-//	for (;;) {
-//		if (0 == strcmp (input_line, "end"))
-//			break;
-//		Map_Update (&map);
-//		gets (input_line);
-//		Logger_INFO (input_line);
-//		IO_SendEndTurn ();
-//	}
-//	/* loading finalizing information */
-//	/* TODO */
-//	/* destroy */
-//	Logger_Destroy ();
-//	Map_Destroy (&map);
-//	return 0;
 

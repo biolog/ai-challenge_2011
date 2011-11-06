@@ -3,7 +3,6 @@
 #include <string.h>
 #include "logger.h"
 #include "game.h"
-#include "parse.h"
 /*----------------------------------------------------------------------------*/
 /* DEFINES                                                                    */
 /*----------------------------------------------------------------------------*/
@@ -11,25 +10,24 @@
 /*----------------------------------------------------------------------------*/
 /* PUBLIC FUNCTIONS                                                           */
 /*----------------------------------------------------------------------------*/
-int Game_ParseGameInfoStr (
+void Game_ParseGameInfoStr (
 	struct game_info *info, 
 	const char *input_line
 ) {
 char *key_buffer;
 char *val_buffer;
-int  ret_code;
+int   parsed;
 size_t input_len;
+	/* split key-value pair */
 	input_len = strlen(input_line);
 	key_buffer = (char *)malloc (input_len);
 	val_buffer = (char *)malloc (input_len);
-	ret_code = KeyVal_Extract (
-		input_line, 
-		key_buffer,
-		val_buffer,
-		' '
-	);
-	if (0 != ret_code)
+	parsed = sscanf (input_line, "%s %s", key_buffer, val_buffer);
+	if (parsed < 2) {
+		Logger_WARNING ("Unrecognize game param str");
 		goto out;
+	}
+
 	if (0 == strcmp (key_buffer, PARAM_LOADTIME)) {
 		info->loadtime = atoi (val_buffer);
 		goto out;
@@ -70,7 +68,6 @@ size_t input_len;
 out:
 	free (key_buffer);
 	free (val_buffer);
-	return ret_code;
 }
 /*----------------------------------------------------------------------------*/
 int Game_ParseGameFinalizeStr (

@@ -12,6 +12,12 @@
 #define PARAM_ATTACKRADIUS2 "attackradius2"
 #define PARAM_SPAWNRADIUS2  "spawnradius2"
 #define PARAM_PLAYERSEED    "player_seed"
+/* Letter codes of map strings */
+#define LETTER_WATER    'w'
+#define LETTER_FOOD     'f'
+#define LETTER_HILL     'h'
+#define LETTER_ANT_LIVE 'a'
+#define LETTER_ANT_DEAD 'd'
 
 /*----------------------------------------------------------------------------*/
 /* TYPES                                                                      */
@@ -40,7 +46,7 @@ struct game_info {
 /*----------------------------------------------------------------------------*/
 /* FUNCTIONS                                                                  */
 /*----------------------------------------------------------------------------*/
-int Game_ParseGameInfoStr (
+void Game_ParseGameInfoStr (
 	struct game_info *game_info, 
 	const char *input_line
 );
