@@ -15,19 +15,23 @@ unsigned int test_array_length = 10;
 /*----------------------------------------------------------------------------*/
 void Test_OrdinaryCase (void)
 {
-struct list;
+struct list list;
 unsigned int i;
 char *data;
 
         List_Init (&list);
         /* fill the list */
-        for (i = 0; i < test_array_length; i++)
+        for (i = 0; i < test_array_length; i++) {
+		printf ("[INFO]: Add data %s to list\n", test_array[i]);
                 List_Add (&list, test_array[i]);
+	}
         
         /* check the list*/
-        data = List_GetNextData (&list, 1);
-        while (data != NULL) {
-                data = List_GetNextData (&list, test_array[i]);
+	List_ResetToFirst (&list);
+        while (1) {
+                data = List_GetNextData (&list);
+		if (data == NULL)
+			break;
 #ifdef DEBUG_PRINT
                 printf ("data %s\n", data);
 #endif
@@ -40,5 +44,6 @@ char *data;
 int main (int argc, char *argv[])
 {
         Test_OrdinaryCase ();
+	return 0;
 }
 
