@@ -2,18 +2,6 @@
 #include <assert.h>
 #include "list.h"
 /*----------------------------------------------------------------------------*/
-/* PRIVATE FUNCTIONS                                                          */
-/*----------------------------------------------------------------------------*/
-struct list_node *List_GetNextNode (struct list *list)
-{
-struct list_node *node;
-        node = list->current_node;
-	if (node == NULL)
-		return NULL;
-        list->current_node = list->current_node->next;
-        return node;
-}
-/*----------------------------------------------------------------------------*/
 /* PUBLIC FUNCTIONS                                                           */
 /*----------------------------------------------------------------------------*/
 void List_Init (struct list *list)
@@ -21,6 +9,28 @@ void List_Init (struct list *list)
         list->current_node = NULL;
         list->list.prev = NULL;
         list->list.next = NULL;
+}
+/*----------------------------------------------------------------------------*/
+void List_Destroy (struct list *list, int destroy_data)
+{
+struct list_node *node;
+void *data;	
+        List_ResetToFirst (list);
+        while (1) {
+		node = list->current_node;
+		if (node == NULL)
+			break;
+		/* free data block of node */
+		if (destroy_data) {
+			data = List_GetData(list);
+			if (data != NULL)
+				free (data);
+		}
+		/* switch to next node */
+		List_SwitchToNext (list);
+		/* free memory from node itself */
+		free (node);
+        }
 }
 /*----------------------------------------------------------------------------*/
 void List_Add (struct list *list, void *data)
@@ -41,34 +51,20 @@ struct list_node *node_old;
 	list->current_node = node_new;
 }
 /*----------------------------------------------------------------------------*/
+void *List_GetData (struct list *list)
+{
+	if (list->current_node == NULL)
+		return NULL;
+        return list->current_node->data;
+}
+/*----------------------------------------------------------------------------*/
 void List_ResetToFirst (struct list *list) {
         list->current_node = list->list.next;
 }
 /*----------------------------------------------------------------------------*/
-void *List_GetNextData (struct list *list)
+void List_SwitchToNext (struct list *list)
 {
-struct list_node *node;
-        node = List_GetNextNode (list);
-	if (node == NULL)
-		return NULL;
-        return node->data;
-}
-/*----------------------------------------------------------------------------*/
-void List_Destroy (struct list *list)
-{
-struct list_node *node;
-struct list_node *node_next;
-        List_ResetToFirst (list);
-       	node = List_GetNextNode (list);
-	if (node == NULL)
-		return;
-        while (1) {
-        	node_next = List_GetNextNode (list);
-                free (node);
-		if (node_next == NULL)
-			break;
-		else
-			node = node_next;
-        }
+	if (list->current_node != NULL)
+		list->current_node = list->current_node->next;
 }
 

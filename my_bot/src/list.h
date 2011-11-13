@@ -28,6 +28,15 @@ struct list {
  */
 void List_Init (struct list *list);
 
+/* @brief Destroy list structure. All data will NOT be destroyed, 
+ *        because them may be referenced somethere else.
+ * @param [in] list Pointer to list structure.
+ * @param [in] destroy_data Flag. If != 0 then free() for data fields will be called.
+ * @return Nothing.
+ */
+void List_Destroy (struct list *list, int destroy_data);
+
+
 /* @brief Add data to the list.
  * @param [in] list Pointer to list sructure.
  * @param [in] data Pointer to data to be added.
@@ -35,23 +44,29 @@ void List_Init (struct list *list);
  */
 void List_Add (struct list *list, void *data);
 
+/* @brief Get data buffer of current element in list.
+ * @param [in] list Pointer to list structure.
+ * @return Pointer to data in list.
+ */
+void *List_GetData (struct list *list);
+
+
 /* @brief Set internal list poinetr to first data item.
  * @param [in] list Pointer to list structure.
  * @return Nothing.
  */ 
 void List_ResetToFirst (struct list *list);
 
-/* @brief Get next data buffer in list.
- * @param [in] list Pointer to list structure.
- * @return Pointer to data in list.
- */
-void *List_GetNextData (struct list *list);
-
-/* @brief Destroy list structure. All data will NOT be destroyed, 
- *        because them may be referenced somethere else.
+/* @brief Switch to next element in list.
  * @param [in] list Pointer to list structure.
  * @return Nothing.
  */
-void List_Destroy (struct list *list);
+void List_SwitchToNext (struct list *list);
+
+/* @brief Delete current element of list.
+ * @param [in] list Pointer to list structure.
+ * @return Nothing.
+ */
+void List_DeleteCurrent (struct list *list);
 
 #endif
