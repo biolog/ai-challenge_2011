@@ -31,9 +31,6 @@ struct ant {
         unsigned int row;
         unsigned int col;
 	struct ant_task task;
-	/* connection to other ats in list */
-	struct ant *next;
-	struct ant *prev;
 };
 /*----------------------------------------------------------------------------*/
 /* FUNCTIONS                                                                  */
