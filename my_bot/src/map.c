@@ -5,16 +5,53 @@
 #include "map.h"
 #include "logger.h"
 /*----------------------------------------------------------------------------*/
-/* MAPCELL functions                                                          */
+/* TYPES                                                                      */
 /*----------------------------------------------------------------------------*/
-void MapCell_Init (struct map_cell *cell)
-{
-	cell->next = NULL;
-	cell->prev = NULL;
-	cell->type = CT_UNKNOWN;
-}
+enum map_errors {
+	MAP_OK,
+	MAP_CANT_PARSE
+};
+/*----------------------------------------------------------------------------*/
+struct map_cell {
+	/* content of cell */
+	unsigned short owner; 
+	unsigned int   row;
+	unsigned int   col;
+};
 /*----------------------------------------------------------------------------*/
 /* PRIVATE FUNCTIONS                                                          */
+/*----------------------------------------------------------------------------*/
+int Map_SearchAnt (struct map *map, unsigned int row, unsigned int col)
+{
+struct ant *ant;
+	List_ResetToFirst (&map->ants);
+	while (1) {
+		ant = (struct ant *)List_GetData (&map->ants);
+		if (ant == NULL)
+			return 0;
+		if (ant->row == row && ant->col == col)
+			return 1;
+	}
+}
+/*----------------------------------------------------------------------------*/
+void Map_AddNewAnt (struct map *map, unsigned int row, unsigned int col)
+{
+struct ant *ant;
+	/* this is atomic operation */
+	if (Map_SearchAnt (map, row, col))
+		return;
+	ant = (struct ant *)malloc (sizeof (struct ant));
+	ant->row = row;
+	ant->col = col;
+	List_Add (&map->ants, ant);
+}
+/*----------------------------------------------------------------------------*/
+void Map_RemoveAnt (struct map *map, unsigned int row, unsigned int col)
+{
+	if (!Map_SearchAnt (map, row, col))
+		return;
+	List_DeleteCurrent (&map->ants);
+}
 /*----------------------------------------------------------------------------*/
 int Map_ParseWaterStr (struct map *map, const char *message)
 {
@@ -22,22 +59,15 @@ unsigned int row;
 unsigned int col;
 unsigned int scanned;
 struct map_cell *cell;
-struct map_cell *cell_next;
 	scanned = sscanf(message, "%d %d", &row, &col);
 	if (scanned < 2)
 		return -1;
 	cell = (struct map_cell *) malloc (sizeof (struct map_cell));
 	assert (cell != 0);
-	cell->type = CT_WATER;
 	cell->owner = 0;
 	cell->row = row;
 	cell->col = col;
-	/* relink the list */
-	cell_next = map->water.next;
-	cell_next->prev = cell;
-	cell->next = cell_next;
-	cell->prev = &map->water;
-	map->water.next = cell;
+	List_Add (&map->water, cell);
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
@@ -46,13 +76,16 @@ int Map_ParseFoodStr (struct map *map, const char *message)
 unsigned int row;
 unsigned int col;
 unsigned int scanned;
-/* struct map_cell cell; */
+struct map_cell *cell;
 	scanned = sscanf(message, "%d %d", &row, &col);
 	if (scanned < 2)
 		return -1;
-	cell.type = CT_FOOD;
-	cell.owner = 0;
-/*	Map_SetCellType (map, row, col, &cell);*/
+	cell = (struct map_cell *) malloc (sizeof (struct map_cell));
+	assert (cell != 0);
+	cell->owner = 0;
+	cell->row = row;
+	cell->col = col;
+	List_Add (&map->food, cell);
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
@@ -62,13 +95,16 @@ unsigned int row;
 unsigned int col;
 unsigned int owner;
 unsigned int scanned;
-/* struct map_cell cell; */
+struct map_cell *cell;
 	scanned = sscanf(message, "%d %d %d", &row, &col, &owner);
 	if (scanned < 3)
 		return -1;
-	cell.type = CT_HILL;
-	cell.owner = (unsigned short)owner;
-/*	Map_SetCellType (map, row, col, &cell);*/
+	cell = (struct map_cell *) malloc (sizeof (struct map_cell));
+	assert (cell != 0);
+	cell->owner = (unsigned short) owner;
+	cell->row = row;
+	cell->col = col;
+	List_Add (&map->hill, cell);
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
@@ -78,18 +114,13 @@ unsigned int row;
 unsigned int col;
 unsigned int owner;
 unsigned int scanned;
-struct map_cell cell;
-struct ant *ant_node;
+struct ant *ant;
 	scanned = sscanf(message, "%d %d %d", &row, &col, &owner);
 	if (scanned < 3)
 		return -1;
-	cell.type = CT_LIVE_ANT;
-	cell.owner = (unsigned short)owner;
-/*	Map_SetCellType (map, row, col, &cell);*/
-	/* adding to ants list */
-	ant_node = Ants_SearchByPos (&map->ants, row, col);
-	if (ant_node == NULL)
-		Ants_AddNewAnt (&map->ants, row, col);
+	if (owner == 0)
+		/* this is my ant */
+		Map_AddNewAnt (map, row, col);
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
@@ -99,43 +130,39 @@ unsigned int row;
 unsigned int col;
 unsigned int owner;
 unsigned int scanned;
-struct map_cell cell;
-struct ant *ant_node;
 	scanned = sscanf(message, "%d %d %d", &row, &col, &owner);
 	if (scanned < 3)
 		return -1;
-	cell.type = CT_DEAD_ANT;
-	cell.owner = (unsigned short)owner;
-/*	Map_SetCellType (map, row, col, &cell);*/
-	/* removing ant from list */
-	ant_node = Ants_SearchByPos (&map->ants, row, col);
-	if (ant_node != NULL)
-		Ants_RemoveDeadAnt (ant_node);
+	if (owner == 0)
+		/* this is my ant */
+		Map_RemoveAnt (map, row, col);
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
 /* PUBLIC FUNCTIONS                                                           */
 /*----------------------------------------------------------------------------*/
-void Map_Init (struct map *map, const struct game_info *info)
-/* TODO: game_info is redundant here */
+void Map_Init (struct map *map)
 {
-	Ants_Init (&map->ants);
-	MapCell_Init (&map->water);
-	MapCell_Init (&map->food);
-	MapCell_Init (&map->hill);
-	MapCell_Init (&map->enemies);
+	List_Init (&map->water);
+	List_Init (&map->food);
+	List_Init (&map->hill);
+	List_Init (&map->enemies);
+	List_Init (&map->ants);
 }
 /*----------------------------------------------------------------------------*/
 void Map_Destroy (struct map *map )
 {
-	Ants_Destroy (&map->ants);
+	List_Destroy (&map->water, 1);
+	List_Destroy (&map->food, 1);
+	List_Destroy (&map->hill, 1);
+	List_Destroy (&map->enemies, 1);
+	List_Destroy (&map->ants, 1);
 }
 /*----------------------------------------------------------------------------*/
 void Map_ParseMapStr (struct map *map, const char *message)
 {
 const char *message_body;
-int ret_code;
-	ret_code = 0;
+enum map_errors ret_code = MAP_CANT_PARSE;
 	message_body = &message[2];
 	switch (message[0]) {
 	case LETTER_WATER:
@@ -156,7 +183,7 @@ int ret_code;
 	default:
 		Logger_ERROR ("Can't recognize type of map string");
 	}
-	if (0 != ret_code) {
+	if (MAP_OK != ret_code) {
 		Logger_ERROR ("Can't understand map string");
 	}
 }
