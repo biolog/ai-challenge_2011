@@ -35,41 +35,4 @@ struct ant {
 /*----------------------------------------------------------------------------*/
 /* FUNCTIONS                                                                  */
 /*----------------------------------------------------------------------------*/
-void Ants_Init(struct ant *ants);
-void Ants_Destroy(struct ant *ants);
-void Ants_AddNewAnt (
-	struct ant *ants, 
-	unsigned int row, 
-	unsigned int col
-);
-void Ants_RemoveDeadAnt (struct ant *dead_ant);
-struct ant *Ants_SearchByPos (
-	struct ant *ants, 
-	unsigned int row, 
-	unsigned int col
-);
-void Ants_MoveTo (
-	struct ant *ant,
-	enum ants_move_directions direction
-);
-void Ants_SetAntCommand (
-	struct ant *ant,
-	unsigned int row,
-	unsigned int col,
-	enum ants_tasks_codes code
-);
-struct ant *Ants_GetNearestFree (
-	struct ant *ants, 
-	unsigned int row, 
-	unsigned int col
-);
-void Ants_SetTask (
-	struct ant *ant,
-	unsigned int target_row, 
-	unsigned int target_col,
-	enum ants_tasks_codes task
-);
-enum ants_move_directions Ants_GetNextMove (
-	struct ant *ant
-);
 #endif
