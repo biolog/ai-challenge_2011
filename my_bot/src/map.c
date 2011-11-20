@@ -21,36 +21,15 @@ struct map_cell {
 /*----------------------------------------------------------------------------*/
 /* PRIVATE FUNCTIONS                                                          */
 /*----------------------------------------------------------------------------*/
-int Map_SearchAnt (struct map *map, unsigned int row, unsigned int col)
+void Map_AddMyAnt (unsigned int row, unsigned int col)
 {
-struct ant *ant;
-	List_ResetToFirst (&map->ants);
-	while (1) {
-		ant = (struct ant *)List_GetData (&map->ants);
-		if (ant == NULL)
-			return 0;
-		if (ant->row == row && ant->col == col)
-			return 1;
-	}
+	/* search for ant */
+	/*TODO*/
 }
 /*----------------------------------------------------------------------------*/
-void Map_AddNewAnt (struct map *map, unsigned int row, unsigned int col)
+void Map_AddEnemyAnt (unsigned int row, unsigned int col, unsigned short owner)
 {
-struct ant *ant;
-	/* this is atomic operation */
-	if (Map_SearchAnt (map, row, col))
-		return;
-	ant = (struct ant *)malloc (sizeof (struct ant));
-	ant->row = row;
-	ant->col = col;
-	List_Add (&map->ants, ant);
-}
-/*----------------------------------------------------------------------------*/
-void Map_RemoveAnt (struct map *map, unsigned int row, unsigned int col)
-{
-	if (!Map_SearchAnt (map, row, col))
-		return;
-	List_DeleteCurrent (&map->ants);
+	/*TODO*/
 }
 /*----------------------------------------------------------------------------*/
 int Map_ParseWaterStr (struct map *map, const char *message)
@@ -114,13 +93,18 @@ unsigned int row;
 unsigned int col;
 unsigned int owner;
 unsigned int scanned;
-struct ant *ant;
 	scanned = sscanf(message, "%d %d %d", &row, &col, &owner);
 	if (scanned < 3)
 		return -1;
 	if (owner == 0)
 		/* this is my ant */
-		Map_AddNewAnt (map, row, col);
+		Map_AddMyAnt (row, col);
+	else
+		/* enemy ant */
+		Map_AddEnemyAnt (
+			row, col, 
+			(unsigned short)owner
+		);
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
