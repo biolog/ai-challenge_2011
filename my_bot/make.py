@@ -94,7 +94,7 @@ def CompileAndMakeSources (
 # MAIN
 #-------------------------------------------------------------------------------
 def PrintUsage () :
-	print "Usage: make.py solution src_dir1 [src_dir2] ... [src_dirN]"
+	print "Usage: make.py solution_name src_dir1 [src_dir2] ... [src_dirN]"
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
 	if len (sys.argv) < 3:
