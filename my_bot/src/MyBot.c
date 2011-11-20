@@ -94,7 +94,7 @@ enum engine_state state_next = state;
 			/* lets intialize internal structures         */
 			state_next = ESTATE_RUN_TURN;
 			Logger_INFO ("Init finished");
-			Map_Init (&map, &game_info);
+			Map_Init (&map);
 			SendEndTurn ();
 			continue;
 		}
